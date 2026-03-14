@@ -8,26 +8,26 @@ export default function FacialExpression() {
   const videoRef = useRef();
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [expression, setExpression] = useState("Not detected");
-  const [songs,setSongs]=useState([]);
+  const [songs, setSongs] = useState([]);
 
-  let url="https://facial-expression-backend-1.onrender.com/api/songs"
+  let url = "https://facial-expression-backend-1.onrender.com/api/songs"
   console.log(songs)
-  async function fetchSongs(){
-      let data=await axios.get(url)
-      setSongs(data.data.data)
-      console.log(data.data.data)
+  async function fetchSongs() {
+    let data = await axios.get(url)
+    setSongs(data.data.data)
+    console.log(data.data.data)
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchSongs()
-  },[])
+  }, [])
 
- const filterSongs = songs.filter(
-  (el) => el.mood?.toLowerCase() === expression?.toLowerCase()
-);
+  const filterSongs = songs.filter(
+    (el) => el.mood?.toLowerCase() === expression?.toLowerCase()
+  );
 
-console.log("Detected mood:", expression);
-console.log("Songs from API:", songs);
+  console.log("Detected mood:", expression);
+  console.log("Songs from API:", songs);
 
   // const dummySongs = [
   //   { title: "Sunrise Serenade", artist: "Ava Carter" },
@@ -78,19 +78,25 @@ console.log("Songs from API:", songs);
     }
   };
 
-  const audioRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRefs = useRef([]);
+  const [playingIndex, setPlayingIndex] = useState(null);
 
-  const togglePlay = () => {
-    if (!audioRef.current) return;
+  const togglePlay = (index) => {
+    const currentAudio = audioRefs.current[index];
 
-    if (isPlaying) {
-      audioRef.current.pause();
+    if (!currentAudio) return;
+
+    if (playingIndex === index) {
+      currentAudio.pause();
+      setPlayingIndex(null);
     } else {
-      audioRef.current.play();
-    }
+      if (playingIndex !== null) {
+        audioRefs.current[playingIndex].pause();
+      }
 
-    setIsPlaying(!isPlaying);
+      currentAudio.play();
+      setPlayingIndex(index);
+    }
   };
   return (
     <div className="min-h-screen bg-[#faf9ff] px-10 py-6">
@@ -173,25 +179,26 @@ console.log("Songs from API:", songs);
               </div>
 
               <div className="flex flex-col items-center gap-4">
-      {/* Audio Element */}
-      <audio
-        ref={audioRef}
-        src={song.audioFile}
-        preload="auto"
-      />
+                {/* Audio Element */}
+                <audio
+                  ref={(el) => (audioRefs.current[index] = el)}
+                  src={song.audioFile}
+                  preload="auto"
+                  onEnded={() => setPlayingIndex(null)}
+                />
 
-      {/* Play Button */}
-      <motion.button
-        onClick={togglePlay}
-        whileTap={{ scale: 0.9 }}
-        whileHover={{ scale: 1.1 }}
-        className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center text-white shadow-lg"
-      >
-        {isPlaying ? <Pause size={28} /> : <Play size={28} />}
-      </motion.button>
-    </div>
+                {/* Play Button */}
+                <motion.button
+                  onClick={() => togglePlay(index)}
+                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.1 }}
+                  className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center text-white shadow-lg"
+                >
+                  {playingIndex === index ? <Pause size={28} /> : <Play size={28} />}
+                </motion.button>
+              </div>
             </motion.div>
-))}
+          ))}
         </div>
       </motion.div>
     </div>
