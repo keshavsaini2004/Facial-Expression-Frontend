@@ -10,7 +10,7 @@ export default function FacialExpression() {
   const [expression, setExpression] = useState("Not detected");
   const [songs,setSongs]=useState([]);
 
-  let url="http://localhost:3000/songs"
+  let url="https://facial-expression-backend-1.onrender.com/api/songs"
   console.log(songs)
   async function fetchSongs(){
       let data=await axios.get(url)
