@@ -22,8 +22,12 @@ export default function FacialExpression() {
     fetchSongs()
   },[])
 
-  const filterSongs=songs.filter((el)=>el.mood==expression);
-  console.log(filterSongs);
+ const filterSongs = songs.filter(
+  (el) => el.mood?.toLowerCase() === expression?.toLowerCase()
+);
+
+console.log("Detected mood:", expression);
+console.log("Songs from API:", songs);
 
   // const dummySongs = [
   //   { title: "Sunrise Serenade", artist: "Ava Carter" },
