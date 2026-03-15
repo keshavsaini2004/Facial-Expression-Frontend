@@ -25,11 +25,18 @@ export default function FacialExpression() {
   const [filterSongs, setFilterSongs] = useState([])
 
   useEffect(() => {
-    const filtered = songs.filter(
-      (el) => el.mood?.toLowerCase() === expression?.toLowerCase()
-    );
-    setFilterSongs(filtered)
-  }, [expression, songs])
+
+    const filtered = songs.filter((song) => {
+      if (!song.mood) return false;
+
+      return song.mood.trim().toLowerCase() === expression.trim().toLowerCase();
+    });
+
+    console.log("Filtered songs:", filtered);
+
+    setFilterSongs(filtered);
+
+  }, [expression, songs]);
 
   console.log("Detected mood:", expression);
   console.log("Songs from API:", songs);
@@ -89,8 +96,13 @@ export default function FacialExpression() {
       const sorted = Object.entries(detection.expressions).sort(
         (a, b) => b[1] - a[1]
       );
+      const mood = sorted[0][0].toLowerCase();
 
-      setExpression(sorted[0][0]);
+      if (mood === "neutral") {
+        setExpression("sad");
+      } else {
+        setExpression(mood);
+      }
     } else {
       console.log("No face detected");
     }
