@@ -22,9 +22,14 @@ export default function FacialExpression() {
     fetchSongs()
   }, [])
 
-  const filterSongs = songs.filter(
-    (el) => el.mood?.toLowerCase() === expression?.toLowerCase()
-  );
+  const [filterSongs, setFilterSongs] = useState([])
+
+  useEffect(() => {
+    const filtered = songs.filter(
+      (el) => el.mood?.toLowerCase() === expression?.toLowerCase()
+    );
+    setFilterSongs(filtered)
+  }, [expression, songs])
 
   console.log("Detected mood:", expression);
   console.log("Songs from API:", songs);
@@ -63,21 +68,35 @@ export default function FacialExpression() {
   const handleClick = async () => {
     if (!modelsLoaded) return;
 
-    const detection = await faceapi
-      .detectSingleFace(
-        videoRef.current,
-        new faceapi.TinyFaceDetectorOptions()
-      )
-      .withFaceExpressions();
+    let detections = [];
 
-    if (detection) {
-      const sorted = Object.entries(detection.expressions).sort(
-        (a, b) => b[1] - a[1]
-      );
-      setExpression(sorted[0][0]);
+    for (let i = 0; i < 5; i++) {
+      const detection = await faceapi
+        .detectSingleFace(
+          videoRef.current,
+          new faceapi.TinyFaceDetectorOptions()
+        )
+        .withFaceExpressions();
+
+      if (detection) {
+        detections.push(detection.expressions);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    if (detections.length > 0) {
+      const avg = detections.reduce((acc, exp) => {
+        for (let key in exp) {
+          acc[key] = (acc[key] || 0) + exp[key];
+        }
+        return acc;
+      }, {});
+
+      const mood = Object.entries(avg).sort((a, b) => b[1] - a[1])[0][0];
+      setExpression(mood);
     }
   };
-
   const audioRefs = useRef([]);
   const [playingIndex, setPlayingIndex] = useState(null);
 
