@@ -66,37 +66,36 @@ export default function FacialExpression() {
   }, []);
 
   const handleClick = async () => {
-    if (!modelsLoaded) return;
+    if (!modelsLoaded || !videoRef.current) return;
 
-    let detections = [];
+    const video = videoRef.current;
 
-    for (let i = 0; i < 5; i++) {
-      const detection = await faceapi
-        .detectSingleFace(
-          videoRef.current,
-          new faceapi.TinyFaceDetectorOptions()
-        )
-        .withFaceExpressions();
-
-      if (detection) {
-        detections.push(detection.expressions);
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 200));
+    if (video.readyState !== 4) {
+      console.log("Video not ready");
+      return;
     }
 
-    if (detections.length > 0) {
-      const avg = detections.reduce((acc, exp) => {
-        for (let key in exp) {
-          acc[key] = (acc[key] || 0) + exp[key];
-        }
-        return acc;
-      }, {});
+    const detection = await faceapi
+      .detectSingleFace(
+        video,
+        new faceapi.TinyFaceDetectorOptions({
+          inputSize: 320,
+          scoreThreshold: 0.5,
+        })
+      )
+      .withFaceExpressions();
 
-      const mood = Object.entries(avg).sort((a, b) => b[1] - a[1])[0][0];
-      setExpression(mood);
+    if (detection) {
+      const sorted = Object.entries(detection.expressions).sort(
+        (a, b) => b[1] - a[1]
+      );
+
+      setExpression(sorted[0][0]);
+    } else {
+      console.log("No face detected");
     }
   };
+
   const audioRefs = useRef([]);
   const [playingIndex, setPlayingIndex] = useState(null);
 
@@ -157,10 +156,12 @@ export default function FacialExpression() {
           </p>
 
           <motion.button
+
+            disabled={!modelsLoaded}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleClick}
-            className="bg-purple-600 text-white px-6 py-2 rounded-full shadow-md"
+            className="bg-purple-600 text-white px-6 py-2 rounded-full shadow-md disabled:bg-gray-400"
           >
             Start Listening
           </motion.button>
