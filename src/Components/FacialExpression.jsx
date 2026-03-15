@@ -32,7 +32,8 @@ export default function FacialExpression() {
       return song.mood.trim().toLowerCase() === expression.trim().toLowerCase();
     });
 
-    console.log("Filtered songs:", filtered);
+    console.log("Detected Mood:", expression);
+    console.log("Filtered Songs:", filtered);
 
     setFilterSongs(filtered);
 
@@ -97,12 +98,7 @@ export default function FacialExpression() {
         (a, b) => b[1] - a[1]
       );
       const mood = sorted[0][0].toLowerCase();
-
-      if (mood === "neutral") {
-        setExpression("sad");
-      } else {
-        setExpression(mood);
-      }
+      setExpression(mood);
     } else {
       console.log("No face detected");
     }
